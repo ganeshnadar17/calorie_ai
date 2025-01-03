@@ -1,0 +1,7 @@
+src/config/huggingface.ts
+src/config/openai.ts
+node_modules/
+dist/
+.env
+.DS_Store
+*.log
