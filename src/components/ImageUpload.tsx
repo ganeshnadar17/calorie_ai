@@ -1,5 +1,4 @@
-import React, { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
 
 interface ImageUploadProps {
@@ -7,32 +6,105 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ onImageSelect }: ImageUploadProps) {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      onImageSelect(acceptedFiles[0]);
-    }
-  }, [onImageSelect]);
+  const [dragActive, setDragActive] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png']
-    },
-    maxFiles: 1
-  });
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
+    }
+  };
+
+  const handleFile = (file: File) => {
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Pass file to parent
+    onImageSelect(file);
+  };
+
+  const handleButtonClick = () => {
+    inputRef.current?.click();
+  };
 
   return (
-    <div
-      {...getRootProps()}
-      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors"
+    <div 
+      className={`card shadow-sm ${dragActive ? 'border-primary' : ''}`}
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
     >
-      <input {...getInputProps()} />
-      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-      <p className="mt-2 text-sm text-gray-600">
-        {isDragActive
-          ? "Drop the image here"
-          : "Drag & drop an image here, or click to select"}
-      </p>
+      <div className="card-body p-4 text-center">
+        {preview ? (
+          <div className="position-relative mb-3">
+            <img 
+              src={preview} 
+              alt="Preview" 
+              className="img-fluid rounded"
+              style={{ maxHeight: '300px' }}
+            />
+            <button 
+              className="btn btn-sm btn-primary position-absolute top-0 end-0 m-2"
+              onClick={handleButtonClick}
+            >
+              Change Image
+            </button>
+          </div>
+        ) : (
+          <div 
+            className="py-5 border-2 border-dashed rounded-3 mb-3"
+            style={{ borderColor: dragActive ? 'var(--bs-primary)' : 'var(--bs-border-color)' }}
+          >
+            <Upload size={48} className="text-primary mb-3" />
+            <h5>Drag and drop your image here</h5>
+            <p className="text-muted mb-3">or</p>
+            <button 
+              type="button" 
+              className="btn btn-primary"
+              onClick={handleButtonClick}
+            >
+              Browse Files
+            </button>
+          </div>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          className="d-none"
+          accept="image/*"
+          onChange={handleChange}
+        />
+        <p className="text-muted small mb-0">
+          Supported formats: JPG, PNG, GIF (Max size: 5MB)
+        </p>
+      </div>
     </div>
   );
 }

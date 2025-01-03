@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Header } from './Header';
 import { ImageUpload } from './ImageUpload';
 import { ErrorMessage } from './ErrorMessage';
 import { LoadingMessage } from './LoadingMessage';
 import { EntriesList } from './EntriesList';
 import { useFoodStore } from '../store/foodStore';
-import { processImage } from '../services/imageProcessor';
+import { FoodEntry } from '../types/food';
 
 export function AppContent() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -17,7 +16,22 @@ export function AppContent() {
     setError(null);
     
     try {
-      const entry = await processImage(file);
+      // Mock image processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const entry: FoodEntry = {
+        id: Date.now().toString(),
+        imageUrl: URL.createObjectURL(file),
+        description: 'Sample food item',
+        macros: {
+          calories: 350,
+          protein: 20,
+          carbs: 40,
+          fat: 15,
+        },
+        timestamp: new Date().toISOString(),
+      };
+
       addEntry(entry);
     } catch (error: any) {
       setError(error.message || 'Error analyzing image');
@@ -27,18 +41,15 @@ export function AppContent() {
   };
 
   return (
-    <div className="min-vh-100 bg-light">
-      <Header />
-      <div className="container py-5">
-        <div className="row justify-content-center mb-5">
-          <div className="col-md-8">
-            <ImageUpload onImageSelect={handleImageSelect} />
-            {isAnalyzing && <LoadingMessage />}
-            {error && <ErrorMessage message={error} />}
-          </div>
+    <div className="container py-5">
+      <div className="row justify-content-center mb-5">
+        <div className="col-md-8">
+          <ImageUpload onImageSelect={handleImageSelect} />
+          {isAnalyzing && <LoadingMessage />}
+          {error && <ErrorMessage message={error} />}
         </div>
-        <EntriesList entries={entries} />
       </div>
+      <EntriesList entries={entries} />
     </div>
   );
 }

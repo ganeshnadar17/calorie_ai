@@ -9,11 +9,11 @@ interface EntriesListProps {
 
 export function EntriesList({ entries }: EntriesListProps) {
   return (
-    <div className="container">
-      <div className="d-flex align-items-center mb-4">
-        <History className="me-2" size={24} />
-        <h2 className="h4 mb-0">Recent Entries</h2>
-      </div>
+    <div className="container py-5">
+      <h2 className="section-title d-flex align-items-center gap-3 mb-4">
+        <History size={32} className="text-primary" />
+        Recent Entries
+      </h2>
 
       <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {entries.map((entry) => (

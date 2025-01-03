@@ -1,14 +1,14 @@
-export interface MacroNutrients {
+export interface FoodMacros {
   calories: number;
   protein: number;
-  fat: number;
   carbs: number;
+  fat: number;
 }
 
 export interface FoodEntry {
   id: string;
   imageUrl: string;
   description: string;
-  macros: MacroNutrients;
-  timestamp: Date;
+  macros: FoodMacros;
+  timestamp: string;
 }
