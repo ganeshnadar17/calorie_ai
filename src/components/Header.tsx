@@ -5,7 +5,7 @@ export const Header: React.FC = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
       <div className="container">
         <a className="navbar-brand fs-4 fw-bold" href="#">
-          Cuisine Journal
+          Calorie Tracker AI
         </a>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span className="navbar-toggler-icon"></span>
