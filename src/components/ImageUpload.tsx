@@ -38,15 +38,15 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
   };
 
   const handleFile = (file: File) => {
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
 
     // Pass file to parent
     onImageSelect(file);
+
+    // Clean up the preview URL when component unmounts
+    return () => URL.revokeObjectURL(previewUrl);
   };
 
   const handleButtonClick = () => {
@@ -68,9 +68,14 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
               src={preview} 
               alt="Preview" 
               className="img-fluid rounded"
-              style={{ maxHeight: '300px' }}
+              style={{ 
+                maxHeight: '300px',
+                width: '100%',
+                objectFit: 'cover'
+              }}
             />
             <button 
+              type="button"
               className="btn btn-sm btn-primary position-absolute top-0 end-0 m-2"
               onClick={handleButtonClick}
             >
@@ -79,10 +84,10 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
           </div>
         ) : (
           <div 
-            className="py-5 border-2 border-dashed rounded-3 mb-3"
+            className="py-5 border-2 border-dashed rounded-3 mb-3 upload-area"
             style={{ borderColor: dragActive ? 'var(--bs-primary)' : 'var(--bs-border-color)' }}
           >
-            <Upload size={48} className="text-primary mb-3" />
+            <Upload size={48} className="text-primary mb-3 upload-icon" />
             <h5>Drag and drop your image here</h5>
             <p className="text-muted mb-3">or</p>
             <button 

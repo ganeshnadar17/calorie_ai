@@ -1,134 +1,170 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
   email: string;
-  phone: string;
-  address?: string;
-  details?: string;
+  message: string;
 }
 
-export const ContactPage: React.FC = () => {
+export function ContactPage() {
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>();
 
-  const onSubmit = async (data: ContactFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
+    
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch('http://localhost:3001/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        setSubmitSuccess(true);
-        reset();
+        setSubmitStatus({
+          type: 'success',
+          message: 'Thank you for your message. We will get back to you soon!'
+        });
+        setFormData({ name: '', email: '', message: '' });
       } else {
-        throw new Error('Failed to submit form');
+        throw new Error(data.message || 'Failed to send message');
       }
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch (error: any) {
+      setSubmitStatus({
+        type: 'error',
+        message: error.message || 'Failed to send message. Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
     <div className="container py-5">
       <div className="row justify-content-center">
-        <div className="col-md-8">
-          <h2 className="section-title mb-4">Contact Us</h2>
+        <div className="col-lg-8">
+          <h1 className="text-center mb-5">Contact Us</h1>
           
-          {submitSuccess && (
-            <div className="alert alert-success mb-4" role="alert">
-              Thank you for contacting us! We'll get back to you shortly.
+          {/* Contact Information */}
+          <div className="row mb-5">
+            <div className="col-md-4">
+              <div className="d-flex align-items-center mb-4">
+                <Mail className="text-primary me-3" size={24} />
+                <div>
+                  <h5 className="mb-1">Email</h5>
+                  <p className="mb-0">support@calorieai.com</p>
+                </div>
+              </div>
             </div>
-          )}
+            <div className="col-md-4">
+              <div className="d-flex align-items-center mb-4">
+                <Phone className="text-primary me-3" size={24} />
+                <div>
+                  <h5 className="mb-1">Phone</h5>
+                  <p className="mb-0">+1 (555) 123-4567</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div className="d-flex align-items-center mb-4">
+                <MapPin className="text-primary me-3" size={24} />
+                <div>
+                  <h5 className="mb-1">Location</h5>
+                  <p className="mb-0">San Francisco, CA</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="card shadow-sm">
+          {/* Contact Form */}
+          <div className="card shadow-sm">
             <div className="card-body p-4">
-              <div className="mb-3">
-                <label className="form-label">Name *</label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-                  {...register('name', { required: 'Name is required' })}
-                />
-                {errors.name && (
-                  <div className="invalid-feedback">{errors.name.message}</div>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Email *</label>
-                <input
-                  type="email"
-                  className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                  {...register('email', {
-                    required: 'Email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address'
-                    }
-                  })}
-                />
-                {errors.email && (
-                  <div className="invalid-feedback">{errors.email.message}</div>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Phone Number *</label>
-                <input
-                  type="tel"
-                  className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
-                  {...register('phone', {
-                    required: 'Phone number is required',
-                    pattern: {
-                      value: /^[0-9-+() ]{10,}$/,
-                      message: 'Invalid phone number'
-                    }
-                  })}
-                />
-                {errors.phone && (
-                  <div className="invalid-feedback">{errors.phone.message}</div>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Address</label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  {...register('address')}
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label">Details</label>
-                <textarea
-                  className="form-control"
-                  rows={5}
-                  {...register('details')}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary w-100"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
-              </button>
+              {submitStatus.type && (
+                <div
+                  className={`alert alert-${
+                    submitStatus.type === 'success' ? 'success' : 'danger'
+                  } mb-4`}
+                  role="alert"
+                >
+                  {submitStatus.message}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="name" className="form-label">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="message" className="form-label">
+                    Message
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="message"
+                    name="message"
+                    rows={5}
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                  Send Message
+                </button>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   );
-}; 
+} 
